@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Clockwise for the web</title>
+    <style>
+      /* A host page with deliberately hostile CSS: the chat lives in a shadow root and must not care. */
+      * { font-family: "Comic Sans MS", cursive; color: rebeccapurple; letter-spacing: 0.1em; }
+      button { background: yellow; border: 4px dashed red; border-radius: 0; padding: 20px; }
+      div, p { margin: 30px; line-height: 3; }
+      body { max-width: 680px; margin: 40px auto; padding: 0 20px; }
+      .row { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; }
+      .row button { padding: 10px 16px; }
+    </style>
+  </head>
+  <body>
+    <h1>Clockwise</h1>
+    <p>Alarms that adapt to your week. This page embeds the web widget with one script tag.</p>
+    <div class="row">
+      <button id="moment" type="button">Close the plans screen</button>
+      <button id="check" type="button">Run the self-check</button>
+      <button id="logout" type="button">Log out</button>
+      <button id="erase" type="button">Erase my data</button>
+    </div>
+    <p id="out" aria-live="polite"></p>
+    <p>Unread: <span id="unread">0</span></p>
+
+    <!-- The whole integration: one tag. The example fills in EXAMPLE_KEY and the API (example/vite.config.ts). -->
+    <script src="/pingfront.js" data-app-key="%PF_EXAMPLE_KEY%" data-base-url="%PF_EXAMPLE_API%"></script>
+    <script>
+      const out = document.getElementById("out");
+      window.__offers = [];
+      window.__events = [];
+      PingFront.onUnreadCount((n) => (document.getElementById("unread").textContent = String(n)));
+      PingFront.onOffer((offer) => {
+        window.__offers.push(offer);
+        out.textContent = `Paywall opened for offer ${offer.offerId}`;
+      });
+      PingFront.on("live", (e) => window.__events.push(e.type));
+      document.getElementById("moment").onclick = async () => {
+        const r = await PingFront.moment("paywall_closed", { screen: "plans" });
+        out.textContent = `Moment: ${r.outcome}`;
+      };
+      document.getElementById("check").onclick = async () => (out.textContent = (await PingFront.selfCheck()).line);
+      document.getElementById("logout").onclick = async () => {
+        await PingFront.logout();
+        out.textContent = "Logged out";
+      };
+      document.getElementById("erase").onclick = async () => {
+        await PingFront.eraseMyData();
+        out.textContent = "Erased";
+      };
+      if (new URLSearchParams(location.search).has("open")) PingFront.open();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": "dist/types",
+    "rootDir": "src",
+    "types": ["vite/client"]
+  },
+  "include": ["src"],
+  "exclude": ["src/script.ts", "src/sw-entry.ts"]
+}
